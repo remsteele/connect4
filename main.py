@@ -12,6 +12,7 @@ my_board = Board(sqs)
 while True:
     my_board.print_board()
     userInput = 0
+
     while True:
         userInput = int(input(f'Enter column: ')) - 1
         if 6 >= userInput >= 0 and not my_board.is_full(userInput):
