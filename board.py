@@ -89,22 +89,6 @@ class Board:
         else:
             return random.choice(best_moves)
 
-    def __inc_from_middle(self, column):
-        if column == 0:
-            return 0
-        elif column == 1:
-            return 0.1
-        elif column == 2:
-            return 0.2
-        elif column == 3:
-            return 0.3
-        elif column == 4:
-            return 0.2
-        elif column == 5:
-            return 0.1
-        elif column == 6:
-            return 0
-
     def __minimax(self, depth, turn, last_move, alpha, beta):
         valid_moves = self.__get_valid_moves()
         evaluation = self.check_win(last_move)
@@ -142,50 +126,67 @@ class Board:
 
     def __get_best_drawing_move(self, best_moves):
         print('Choosing drawing move...')
+        best = []
         # check for opponent three in a row with open ends
         for best_move in best_moves:
             point = self.place_piece(best_move, '○')
             if self.__point_contains_5(point, [' ', '○', '○', '○', ' ']):
                 self.remove_piece(best_move)
                 print('Make 3 in a row empty ends')
-                return best_move
+                best.append(best_move)
             self.remove_piece(best_move)
+        if len(best) != 0:
+            return self.__inc_from_middle(best)
         # check for three in a row with open ends
         for best_move in best_moves:
             point = self.place_piece(best_move, '●')
             if self.__point_contains_5(point, [' ', '●', '●', '●', ' ']):
                 self.remove_piece(best_move)
                 print('Block 3 in a row empty ends')
-                return best_move
+                best.append(best_move)
             self.remove_piece(best_move)
+        if len(best) != 0:
+            return self.__inc_from_middle(best)
         # check for three in a row
         for best_move in best_moves:
             point = self.place_piece(best_move, '○')
             if self.__point_contains_4(point, ['○', '○', '○', ' ']):
                 self.remove_piece(best_move)
                 print('Make 3 in a row')
-                return best_move
+                best.append(best_move)
             self.remove_piece(best_move)
+        if len(best) != 0:
+            return self.__inc_from_middle(best)
         # check for opponent three in a row
         for best_move in best_moves:
             point = self.place_piece(best_move, '●')
             if self.__point_contains_4(point, ['●', '●', '●', ' ']):
                 self.remove_piece(best_move)
                 print('Block 3 in a row')
-                return best_move
+                best.append(best_move)
             self.remove_piece(best_move)
+        if len(best) != 0:
+            return self.__inc_from_middle(best)
         # check for two in a row
         for best_move in best_moves:
-            for best_move in best_moves:
-                point = self.place_piece(best_move, '○')
-                if self.__point_contains_4(point, ['○', '○', ' ', ' ']):
-                    self.remove_piece(best_move)
-                    print('Make 2 in a row')
-                    return best_move
+            point = self.place_piece(best_move, '○')
+            if self.__point_contains_4(point, ['○', '○', ' ', ' ']):
                 self.remove_piece(best_move)
+                print('Make 2 in a row')
+                best.append(best_move)
+            self.remove_piece(best_move)
+        if len(best) != 0:
+            print(self.__inc_from_middle(best))
+            return self.__inc_from_middle(best)
         print('Random')
         # play random move
-        return random.choice(best_moves)
+        print(self.__inc_from_middle(best_moves))
+        return self.__inc_from_middle(best_moves)
+
+    def __inc_from_middle(self, moves):
+        for j in range(4):
+            if len([i for i in moves if i == 3 + j or i == 3 - j]) != 0:
+                return random.choice([i for i in moves if i == 3 + j or i == 3 - j])
 
     def __point_contains_4(self, point, args):
         for i in [[0, 1, 2, 3], [-1, 0, 1, 2], [-2, -1, 0, 1], [-3, -2, -1, 0]]:
