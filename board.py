@@ -1,5 +1,6 @@
 import collections
 import random
+from math import floor
 
 
 class Board:
@@ -64,7 +65,9 @@ class Board:
         # key: column
         # item: evaluation
         evals = {}
+        print('Calculating evaluation...')
         for column in self.__get_valid_moves():
+            print(f'Calculating column {column + 1}')
             last_move = self.place_piece(column, '○')
             curr_eval = self.__minimax(0, '●', last_move, -1000, 1000)
             self.remove_piece(column)
@@ -86,6 +89,22 @@ class Board:
         else:
             return random.choice(best_moves)
 
+    def __inc_from_middle(self, column):
+        if column == 0:
+            return 0
+        elif column == 1:
+            return 0.1
+        elif column == 2:
+            return 0.2
+        elif column == 3:
+            return 0.3
+        elif column == 4:
+            return 0.2
+        elif column == 5:
+            return 0.1
+        elif column == 6:
+            return 0
+
     def __minimax(self, depth, turn, last_move, alpha, beta):
         valid_moves = self.__get_valid_moves()
         evaluation = self.check_win(last_move)
@@ -93,10 +112,11 @@ class Board:
             return evaluation - depth
         elif evaluation == -10:
             return evaluation + depth
-        elif len(valid_moves) == 0 or depth == 8:
+        elif len(valid_moves) == 0 or depth == 7:
             return 0
         if turn == '○':
             max_eval = -1000
+            max_eval_column = -1
             for column in valid_moves:
                 last_move = self.place_piece(column, '○')
                 curr_eval = self.__minimax(depth + 1, '●', last_move, alpha, beta)
@@ -112,6 +132,8 @@ class Board:
                 last_move = self.place_piece(column, '●')
                 curr_eval = self.__minimax(depth + 1, '○', last_move, alpha, beta)
                 self.remove_piece(column)
+                if depth == 0:
+                    print(f'{floor((column / 6) * 100)}% done')
                 min_eval = min(curr_eval, min_eval)
                 beta = min(beta, curr_eval)
                 if beta <= alpha:
@@ -120,10 +142,26 @@ class Board:
 
     def __get_best_drawing_move(self, best_moves):
         print('Choosing drawing move...')
+        # check for opponent three in a row with open ends
+        for best_move in best_moves:
+            point = self.place_piece(best_move, '○')
+            if self.__point_contains_5(point, [' ', '○', '○', '○', ' ']):
+                self.remove_piece(best_move)
+                print('Make 3 in a row empty ends')
+                return best_move
+            self.remove_piece(best_move)
+        # check for three in a row with open ends
+        for best_move in best_moves:
+            point = self.place_piece(best_move, '●')
+            if self.__point_contains_5(point, [' ', '●', '●', '●', ' ']):
+                self.remove_piece(best_move)
+                print('Block 3 in a row empty ends')
+                return best_move
+            self.remove_piece(best_move)
         # check for three in a row
         for best_move in best_moves:
             point = self.place_piece(best_move, '○')
-            if self.__point_contains(point, ['○', '○', '○', ' ']):
+            if self.__point_contains_4(point, ['○', '○', '○', ' ']):
                 self.remove_piece(best_move)
                 print('Make 3 in a row')
                 return best_move
@@ -131,16 +169,16 @@ class Board:
         # check for opponent three in a row
         for best_move in best_moves:
             point = self.place_piece(best_move, '●')
-            if self.__point_contains(point, ['●', '●', '●', ' ']):
+            if self.__point_contains_4(point, ['●', '●', '●', ' ']):
                 self.remove_piece(best_move)
-                print('Block opponent 3 in a row')
+                print('Block 3 in a row')
                 return best_move
             self.remove_piece(best_move)
         # check for two in a row
         for best_move in best_moves:
             for best_move in best_moves:
                 point = self.place_piece(best_move, '○')
-                if self.__point_contains(point, ['○', '○', ' ', ' ']):
+                if self.__point_contains_4(point, ['○', '○', ' ', ' ']):
                     self.remove_piece(best_move)
                     print('Make 2 in a row')
                     return best_move
@@ -149,11 +187,21 @@ class Board:
         # play random move
         return random.choice(best_moves)
 
-    def __point_contains(self, point, args):
+    def __point_contains_4(self, point, args):
         for i in [[0, 1, 2, 3], [-1, 0, 1, 2], [-2, -1, 0, 1], [-3, -2, -1, 0]]:
             for j in [[0, 1], [1, 0], [1, 1], [-1, 1]]:
                 values = []
                 for inc in range(4):
+                    values.append(self.__valid(point, j[0] * i[inc], j[1] * i[inc]))
+                if collections.Counter(values) == collections.Counter(args):
+                    return True
+        return False
+
+    def __point_contains_5(self, point, args):
+        for i in [[0, 1, 2, 3, 4], [-1, 0, 1, 2, 3], [-2, -1, 0, 1, 2], [-3, -2, -1, 0, 1], [-4, -3, -2, -1, 0]]:
+            for j in [[0, 1], [1, 0], [1, 1], [-1, 1]]:
+                values = []
+                for inc in range(5):
                     values.append(self.__valid(point, j[0] * i[inc], j[1] * i[inc]))
                 if collections.Counter(values) == collections.Counter(args):
                     return True

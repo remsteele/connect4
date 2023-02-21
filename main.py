@@ -12,11 +12,12 @@ my_board = Board(sqs)
 while True:
     my_board.print_board()
     userInput = 0
-
     while True:
-        userInput = int(input(f'Enter column: ')) - 1
-        if 6 >= userInput >= 0 and not my_board.is_full(userInput):
-            break
+        inpt = input('Enter column: ')
+        if inpt == '1' or inpt == '2' or inpt == '3' or inpt == '4' or inpt == '5' or inpt == '6' or inpt == '7':
+            userInput = int(inpt) - 1
+            if not my_board.is_full(userInput):
+                break
     last_move = my_board.place_piece(userInput, '●')
     if my_board.check_win(last_move) == -10:
         my_board.print_board()
